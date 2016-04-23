@@ -1,0 +1,10 @@
+tr1	east
+tr10	west
+tr2	east
+tr3	east
+tr4	east
+tr5	east
+tr6	west
+tr7	west
+tr8	west
+tr9	west
