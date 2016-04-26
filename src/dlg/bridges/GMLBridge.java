@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author santi
  */
-public class GMLBridge {
+public class GMLBridge implements DLGWriter {
         
     public DLG load(BufferedReader br) throws Exception {
         int root = -1;

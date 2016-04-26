@@ -16,7 +16,7 @@ import dlg.util.Label;
  *
  * @author santi
  */
-public class TGFBridge {
+public class TGFBridge implements DLGWriter {
     
     public DLG load(BufferedReader br) throws Exception {
         List<String> IDs = new ArrayList<>();

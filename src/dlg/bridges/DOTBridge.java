@@ -12,7 +12,7 @@ import java.io.Writer;
  *
  * @author santi
  */
-public class DOTBridge {
+public class DOTBridge implements DLGWriter {
     public void save(DLG g, Writer w) throws Exception {
         save(g, w, "graphname");
     }

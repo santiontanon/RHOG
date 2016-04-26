@@ -19,7 +19,7 @@ import org.jdom.input.SAXBuilder;
  *
  * @author santi
  */
-public class GraphMLBridge {
+public class GraphMLBridge implements DLGWriter {
     public List<DLG> loadWithHeader(BufferedReader br) throws Exception {
         List<DLG> l = new ArrayList<>();
         Element root = new SAXBuilder().build(br).getRootElement();
