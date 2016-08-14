@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author santi
  */
-public class FLPartialOrderBridge {
+public class FTPartialOrderBridge {
     public static String sortPrefix = "v_";
     public static String featurePrefix = "e_";
     
