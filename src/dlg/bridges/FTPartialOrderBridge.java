@@ -186,7 +186,7 @@ public class FTPartialOrderBridge {
                             idx = features.size();
                             features.add(f);
                             featureParentSort.add(s);
-                            featureValues.add(new ArrayList<>());
+                            featureValues.add(new ArrayList<Float>());
                         }
                         float value = (float)((IntegerFeatureTerm)v).getValue();
                         if (!featureValues.get(idx).contains(value)) featureValues.get(idx).add(value);
@@ -207,7 +207,7 @@ public class FTPartialOrderBridge {
                             idx = features.size();
                             features.add(f);
                             featureParentSort.add(s);
-                            featureValues.add(new ArrayList<>());
+                            featureValues.add(new ArrayList<Float>());
                         }
                         float value = (float)((FloatFeatureTerm)v).getValue();
                         if (!featureValues.get(idx).contains(value)) featureValues.get(idx).add(value);
