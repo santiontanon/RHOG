@@ -35,6 +35,9 @@ public class PORefinementFiltered extends RefinementOperator implements Incremen
     List<Label> edgeTopLabels = new ArrayList<>();
     PartialOrder partialOrder = null;
     
+    List<Label> neverOccurringVertexLabels = new ArrayList<>();
+    List<Label> neverOccurringEdgeLabels = new ArrayList<>();
+    
     // internal state of incremental downward refinement:
     DLG dw_currentDLG = null;
     int dw_incremental_stage = 0;
@@ -107,7 +110,7 @@ public class PORefinementFiltered extends RefinementOperator implements Incremen
     }
 
     
-    public void inferLabels(List<DLG> baseDLGs) {
+    public void inferLabels(List<DLG> baseDLGs) {        
         for(DLG g: baseDLGs) {
             for(int v = 0;v<g.getNVertices();v++) {
                 Label vl = g.getVertex(v);
@@ -161,7 +164,39 @@ public class PORefinementFiltered extends RefinementOperator implements Incremen
                     updateTopLabelList(el, pTopLabels);
                 }
             }
-        }        
+        }     
+        
+        
+        neverOccurringVertexLabels.addAll(partialOrder.getLabels());
+        neverOccurringEdgeLabels.addAll(partialOrder.getLabels());
+        for(DLG g: baseDLGs) {
+            for(int v = 0;v<g.getNVertices();v++) {
+                Label vl = g.getVertex(v);
+                {
+                    List<Label> toDelete = new ArrayList<>();
+                    for(Label l:neverOccurringVertexLabels) {
+                        if (partialOrder.subsumes(l, vl)) {
+                            toDelete.add(l);
+                        }
+                    }
+                    neverOccurringVertexLabels.removeAll(toDelete);
+                }
+                for(int v2:g.getCondensedOutgoingEdges()[v]) {
+                    Label ve = g.getEdge(v, v2);
+                    List<Label> toDelete = new ArrayList<>();
+                    for(Label l:neverOccurringEdgeLabels) {
+                        if (partialOrder.subsumes(l, ve)) {
+                            toDelete.add(l);
+                        }
+                    }
+                    neverOccurringEdgeLabels.removeAll(toDelete);
+                }
+            }          
+        }
+        
+//        System.out.println("neverOccurringVertexLabels: " + neverOccurringVertexLabels);
+//        System.out.println("neverOccurringEdgeLabels: " + neverOccurringEdgeLabels);
+        
         
         if (DEBUG>=1) {
             for(Label l:outgoingEdgeTopLabels.keySet()) {
@@ -399,11 +434,15 @@ public class PORefinementFiltered extends RefinementOperator implements Incremen
 
                         boolean passesFilter = true;
                         Label vl = candidates[dw_stage_SV_next_label];
-                        for(int v1:dw_currentDLG.getCondensedIncomingEdges()[dw_stage_SV_next_vertex]) {
-                            Label el = dw_currentDLG.getEdge(v1, dw_stage_SV_next_vertex);
-                            if (!passesIncomingFilter(vl, el)) {
-                                passesFilter = false;
-                                break;
+                        if (neverOccurringVertexLabels.contains(vl)) {
+                            passesFilter = false;
+                        } else {
+                            for(int v1:dw_currentDLG.getCondensedIncomingEdges()[dw_stage_SV_next_vertex]) {
+                                Label el = dw_currentDLG.getEdge(v1, dw_stage_SV_next_vertex);
+                                if (!passesIncomingFilter(vl, el)) {
+                                    passesFilter = false;
+                                    break;
+                                }
                             }
                         }
                         if (passesFilter) {
@@ -460,9 +499,12 @@ public class PORefinementFiltered extends RefinementOperator implements Incremen
                         }
 
                         boolean passesFilter = true;
-                        if (!passesIncomingFilter(dw_currentDLG.getVertex(dw_stage_SE_next_vertex1), el) ||
-                            !passesOutgoingFilter(dw_currentDLG.getVertex(dw_stage_SE_next_vertex2), el)) passesFilter = false;
-
+                        if (neverOccurringEdgeLabels.contains(candidates[dw_stage_SE_next_label])) {
+                            passesFilter = false;
+                        } else {
+                            if (!passesIncomingFilter(dw_currentDLG.getVertex(dw_stage_SE_next_vertex2), candidates[dw_stage_SE_next_label]) ||
+                                !passesOutgoingFilter(dw_currentDLG.getVertex(dw_stage_SE_next_vertex1), candidates[dw_stage_SE_next_label])) passesFilter = false;
+                        }
                         if (passesFilter) {
                             g2 = new DLG(dw_currentDLG);
                             g2.setEdge(dw_stage_SE_next_vertex1, dw_stage_SE_next_vertex2, candidates[dw_stage_SE_next_label]);

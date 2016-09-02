@@ -165,12 +165,12 @@ public class AntiUnification {
                             }
                         }*/
                         if (keep) {
-                            for(AntiUnificationResult previous:candidates) {
-                                if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null ||
-                                    s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
-                                    toDeleteCandidates.add(previous);
-                                }
-                            }
+//                            for(AntiUnificationResult previous:candidates) {
+//                                if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null ||
+//                                    s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
+//                                    toDeleteCandidates.add(previous);
+//                                }
+//                            }
                             for(AntiUnificationResult previous:nextOpen) {
                                 if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null) {
                                     keep = false;
