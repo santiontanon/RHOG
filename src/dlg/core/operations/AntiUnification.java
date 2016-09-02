@@ -127,5 +127,104 @@ public class AntiUnification {
             }
         }while(true);
     }
+    
+    
+    public static List<AntiUnificationResult> allAntiunificationsWithMappings(List<DLG> gs, Subsumption s, RefinementOperator rho) throws Exception {
+        List<int []> mappings = new ArrayList<>();
+        for(DLG g:gs) mappings.add(new int[0]);
+        AntiUnificationResult baseResult = new AntiUnificationResult(rho.getTop(), 0, mappings);
+        List<AntiUnificationResult> open = new ArrayList<>();
+        List<AntiUnificationResult> candidates = new ArrayList<>();
+        open.add(baseResult);
+        
+        do {
+            if (DEBUG>=1) System.out.println("AntiUnification.allAntiunificationsWithMappings: open " + open.size() + ", candidates " + candidates.size());
+//            System.out.println("First DLG:\n" + open.get(0).m_antiunifier);
+            List<AntiUnificationResult> nextOpen = new ArrayList<>();
+            for(AntiUnificationResult next:open) {
+                List<? extends DLG> refinements = rho.downwardRefinements(next.m_antiunifier);                        
+                if (DEBUG>=2) System.out.println("AntiUnification.allAntiunificationsWithMappings: refinements " + refinements.size());
+
+                boolean anyKept = false;
+                for(DLG r:refinements) {
+                    // check if it is an antiunification:
+                    AntiUnificationResult current = isAntiUnifierCandidate(r, gs, s);
+                    if (current!=null) {
+                        current.m_steps = next.m_steps+1;
+                        boolean keep = true;
+                        List<AntiUnificationResult> toDeleteCandidates = new ArrayList<>();
+                        List<AntiUnificationResult> toDeleteNextOpen = new ArrayList<>();
+                        for(AntiUnificationResult previous:open) {
+                            if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null &&
+                                s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
+                                keep = false;
+                            }
+                        }
+                        if (keep) {
+                            for(AntiUnificationResult previous:candidates) {
+                                if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null ||
+                                    s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
+                                    toDeleteCandidates.add(previous);
+                                }
+                            }
+                            for(AntiUnificationResult previous:nextOpen) {
+                                if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null) {
+                                    keep = false;
+                                    break;
+                                } else {
+                                    if (s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
+                                        toDeleteNextOpen.add(previous);
+                                    }
+                                }
+                            }
+                        }
+                        if (keep) {
+                            candidates.removeAll(toDeleteCandidates);
+                            nextOpen.removeAll(toDeleteNextOpen);
+                            nextOpen.add(current);
+                            anyKept = true;
+                        }
+                    }
+                }
+                if (!anyKept) {
+                    if (DEBUG>=2) System.out.println("anyKept = false");
+                    boolean keep = true;
+                    List<AntiUnificationResult> toDeleteCandidates = new ArrayList<>();
+                    for(AntiUnificationResult previous:candidates) {
+                        if (s.subsumes(previous.m_antiunifier, next.m_antiunifier)!=null) {
+                            toDeleteCandidates.add(previous);
+                        } else if (s.subsumes(next.m_antiunifier, previous.m_antiunifier)!=null) {
+                            keep = false;
+                            break;
+                        }
+                    }
+                    if (keep) {
+                        if (DEBUG>=2) System.out.println("candidate kept");
+                        candidates.removeAll(toDeleteCandidates);
+                        candidates.add(next);
+                    }
+                }
+            }
+            open = nextOpen;
+        }while(!open.isEmpty());
+        return candidates;
+    }    
+    
+    
+    static AntiUnificationResult isAntiUnifierCandidate(DLG au, List<DLG> gs, Subsumption s)
+    {
+        List<int []> candidate_mappings = new ArrayList<>();
+        for(DLG g:gs) {
+            int []m = s.subsumes(au, g);
+            if (m==null) {
+                candidate_mappings = null;
+                break;
+            } else {
+                candidate_mappings.add(m);
+            }
+        }
+        if (candidate_mappings!=null) return new AntiUnificationResult(au, 0, candidate_mappings);
+        return null;
+    }
 
 }
