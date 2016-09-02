@@ -154,12 +154,16 @@ public class AntiUnification {
                         boolean keep = true;
                         List<AntiUnificationResult> toDeleteCandidates = new ArrayList<>();
                         List<AntiUnificationResult> toDeleteNextOpen = new ArrayList<>();
-                        for(AntiUnificationResult previous:open) {
+/*                        for(AntiUnificationResult previous:open) {
                             if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null &&
                                 s.subsumes(current.m_antiunifier, previous.m_antiunifier)!=null) {
                                 keep = false;
+                                System.out.println("current:");
+                                System.out.println(current.m_antiunifier);
+                                System.out.println("previous:");
+                                System.out.println(previous.m_antiunifier);
                             }
-                        }
+                        }*/
                         if (keep) {
                             for(AntiUnificationResult previous:candidates) {
                                 if (s.subsumes(previous.m_antiunifier, current.m_antiunifier)!=null ||
