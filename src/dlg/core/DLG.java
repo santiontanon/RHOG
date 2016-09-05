@@ -169,6 +169,19 @@ public class DLG {
     }
 
     
+    // gets all the vertices in the graph which have an edge coming form 'v' with label 'l':
+    public List<Integer> getChildrenVerticesByLabel(int v, Label l) {
+        List<Integer> vl = new ArrayList<>();
+        for(int i = 0;i<n_vertices;i++) {
+            if (edges[v][i]!=null && edges[v][i].equals(l)) {
+                vl.add(i);
+            }
+        }
+        
+        return vl;
+    }
+    
+    
     public String toString() {
         try {
             TGFBridge importer = new TGFBridge();
