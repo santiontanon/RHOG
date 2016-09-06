@@ -180,6 +180,18 @@ public class DLG {
         
         return vl;
     }
+
+
+    public List<Integer> getChildrenVerticesByLabel(int v, Label l, PartialOrder po) {
+        List<Integer> vl = new ArrayList<>();
+        for(int i = 0;i<n_vertices;i++) {
+            if (edges[v][i]!=null && po.subsumes(l, edges[v][i])) {
+                vl.add(i);
+            }
+        }
+        
+        return vl;
+    }
     
     
     public String toString() {
