@@ -23,10 +23,14 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
 
     public static int DEBUG = 0;
     
+    // order in which the refinements occur (which might have a strong impact on performance):
     public final int DW_STAGE_EMPTY_GRAPH = 0;
     public final int DW_STAGE_ADD_VERTEX = 2;
     public final int DW_STAGE_ADD_EDGE = 1;
     
+    // order in which the refinements occur (which might have a strong impact on performance):
+    public final int UW_STAGE_REMOVE_NON_BRIDGE_EDGE = 1;
+    public final int UW_STAGE_REMOVE_LEAF = 0;
     
     // internal state of incremental downward refinement:
     DLG dw_currentDLG = null;
@@ -214,7 +218,7 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
     public DLG getNextUpwardRefinement() throws Exception {
         int n = uw_currentDLG.getNVertices();
         switch(uw_incremental_stage) {
-            case 0: // remove a non-bridge edge:
+            case UW_STAGE_REMOVE_NON_BRIDGE_EDGE: // remove a non-bridge edge:
                 {
                     while(uw_stage_0_next_vertex1<n) {
                         Label e = uw_currentDLG.getEdge(uw_stage_0_next_vertex1, uw_stage_0_next_vertex2);
@@ -254,13 +258,15 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
                         }
                         return g2;
                     }
-                    uw_incremental_stage = 1;
-                    uw_stage_1_next_vertex = 0;
+                    uw_incremental_stage++;
                     return getNextUpwardRefinement();
                 }
-            case 1:
+            case UW_STAGE_REMOVE_LEAF:
                 {
-                    if (uw_stage_1_next_vertex >= n) return null;
+                    if (uw_stage_1_next_vertex >= n) {
+                        uw_incremental_stage++;
+                        return getNextUpwardRefinement();
+                    }
 
                     int nedges = uw_currentDLG.getCondensedOutgoingEdges()[uw_stage_1_next_vertex].length + 
                                  uw_currentDLG.getCondensedIncomingEdges()[uw_stage_1_next_vertex].length;
@@ -277,8 +283,8 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
                     uw_stage_1_next_vertex++;                
                     return g2;                    
                 }
+            default: return null;
         }
-        return null;
     }
     
 }

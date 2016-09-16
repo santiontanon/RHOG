@@ -54,7 +54,7 @@ public class Disintegration {
         
         for(int i = 0;i<path.size()-1;i++) {
             if (DEBUG>=1) System.out.println("Disintegration.greedyDisintegration: current position in the path:\n" + path.get(i));
-            DLG property = reminder(path.get(i), path.get(i+1), s, rho);
+            DLG property = remainder(path.get(i), path.get(i+1), s, rho, true);
             if (DEBUG>=1) System.out.println("Disintegration.greedyDisintegration: next property:\n" + property);
             properties.add(property);
         }
@@ -64,24 +64,29 @@ public class Disintegration {
     
     
     // Returns the most general term that when unified with `general', returns `specific'
-    public static DLG reminder(DLG specific, DLG general, Subsumption s, RefinementOperator rho) throws Exception {
+    public static DLG remainder(DLG specific, DLG general, Subsumption s, RefinementOperator rho, boolean general_is_direct_refinement) throws Exception {
         DLG current = specific;
         List<? extends DLG> generalizations_of_specific = rho.upwardRefinements(specific);
         List<DLG> generalizations_of_specific_subsumed_by_general = new ArrayList<>();
         for(DLG tmp:generalizations_of_specific) {
             if (s.subsumes(general, tmp)!=null) generalizations_of_specific_subsumed_by_general.add(tmp);
         }
-        if (DEBUG>=1) System.out.println("Disintegration.reminder: generalizations_of_specific_subsumed_by_general = " + generalizations_of_specific_subsumed_by_general.size());
+        if (DEBUG>=1) System.out.println("Disintegration.remainder: generalizations_of_specific_subsumed_by_general = " + generalizations_of_specific_subsumed_by_general.size());
         
         while(true) {
             DLG next = null;
             List<? extends DLG> refinements = rho.upwardRefinements(current);
             //System.out.println(current);
-            if (DEBUG>=1) System.out.println("Disintegration.reminder: " + refinements.size() + " refinements");
+            if (DEBUG>=1) System.out.println("Disintegration.remainder: " + refinements.size() + " refinements");
             for(DLG candidate:refinements) {
-                if (s.subsumes(candidate, general)!=null) {
-//                    System.out.println("  subsumes general");
-                    continue;
+                // if the "general" DLG is a direct refinement of "specific", then "general" will
+                // be included in generalizations_of_specific_subsumed_by_general, and thus, there is no need
+                // to check separately:
+                if (!general_is_direct_refinement) {
+                    if (s.subsumes(candidate, general)!=null) {
+    //                    System.out.println("  subsumes general");
+                        continue;
+                    }
                 }
                 
                 // now we want to check whether U(current,general) = specific
