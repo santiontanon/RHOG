@@ -8,8 +8,10 @@ package dlg.core.operations;
 import dlg.core.DLG;
 import dlg.core.refinement.IncrementalRefinementOperator;
 import dlg.core.refinement.RefinementOperator;
+import dlg.core.subsumption.FlatSubsumption;
 import dlg.core.subsumption.Subsumption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 

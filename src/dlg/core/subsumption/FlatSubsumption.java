@@ -17,8 +17,10 @@ import java.util.Arrays;
  */
 public class FlatSubsumption extends Subsumption {
     
-    public static int DEBUG = 0;
+//    public static boolean DEBUG_OI_FILTER_ACTIVATED = false;
     
+    public static int DEBUG = 0;
+        
     boolean objectIdentity = false;
     
     public FlatSubsumption(boolean oi) 
@@ -74,13 +76,20 @@ public class FlatSubsumption extends Subsumption {
                     // label of the vertex must match:
                     if (!g2.getVertex(i2).equals(l1)) continue;
 
+                    // under object identity, the more general must haveless or equal connections:
+                    if (objectIdentity/* && DEBUG_OI_FILTER_ACTIVATED*/) {
+                        if (g1.getCondensedIncomingEdges()[i1].length>g2.getCondensedIncomingEdges()[i2].length) continue;
+                        if (g1.getCondensedOutgoingEdges()[i1].length>g2.getCondensedOutgoingEdges()[i2].length) continue;
+                    }
+                    
                     // g2 must have edges coming out with the same labels as the node in g1:
                     boolean allFound = true;
                     for(int j1:g1.getCondensedOutgoingEdges()[i1]) {
                         Label l1j = g1.getEdge(i1, j1);
                         boolean found = false;
                         for(int j2:g2.getCondensedOutgoingEdges()[i2]) {
-                            if (g2.getEdge(i2, j2).equals(l1j)) {
+                            if (g2.getEdge(i2, j2).equals(l1j) && 
+                                g2.getVertex(j2).equals(g1.getVertex(j1))) {
                                 found = true;
                                 break;
                             }
@@ -98,7 +107,8 @@ public class FlatSubsumption extends Subsumption {
                         Label l1j = g1.getEdge(j1, i1);
                         boolean found = false;
                         for(int j2:g2.getCondensedIncomingEdges()[i2]) {
-                            if (g2.getEdge(j2, i2).equals(l1j)) {
+                            if (g2.getEdge(j2, i2).equals(l1j) && 
+                                g2.getVertex(i2).equals(g1.getVertex(i1))) {
                                 found = true;
                                 break;
                             }
@@ -108,7 +118,7 @@ public class FlatSubsumption extends Subsumption {
                             break;
                         }
                     }
-                    if (!allFound) continue;
+                    if (!allFound) continue;                    
                     
                     candidates[i1].add(i2);
                 }
