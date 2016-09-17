@@ -59,17 +59,20 @@ public class SubsumptionTests {
                     SampleDLGs.TreeDLG2(),
                     SampleDLGs.TreeDLG3(),
                     SampleDLGs.TreeDLG4(),
-                    SampleDLGs.DLG1(), };
-        boolean expectedResults[][] = { {true,  true,  false, false, false},
-                                        {false, true,  false, false, false},
-                                        {false, false, true,  false, false},
-                                        {false, false, false, true , true },
-                                        {false, false, false, false , true} };
-        boolean expectedResultsOI[][] = { {true,  true,  false, false, false},
-                                          {false, true,  false, false, false},
-                                          {false, false, true,  false, false},
-                                          {false, false, false, true , true },
-                                          {false, false, false, false , true} };
+                    SampleDLGs.DLG1(), 
+                    SampleDLGs.DLG3(), };
+        boolean expectedResults[][] = { {true,  true,  false, false, false, false},
+                                        {false, true,  false, false, false, false},
+                                        {false, false, true,  false, false, false},
+                                        {false, false, false, true , true,  true},
+                                        {false, false, false, false, true,  true}, 
+                                        {false, false, false, false,  false,  true},};
+        boolean expectedResultsOI[][] = { {true,  true,  false, false, false, false},
+                                          {false, true,  false, false, false, false},
+                                          {false, false, true,  false, false, false},
+                                          {false, false, false, true , true , false},
+                                          {false, false, false, false ,true,  false},
+                                          {false, false, false, false ,false, true},};
         Subsumption s = new FlatSubsumption(false);
         Subsumption s_OI = new FlatSubsumption(true);
         
@@ -77,13 +80,15 @@ public class SubsumptionTests {
             for(int j = 0;j<g.length;j++) {
                 if ((s.subsumes(g[i], g[j])!=null) != expectedResults[i][j]) {
                     errors++;
-                    System.out.println("FlatSubsumption(false) mismatch ("+i+"-"+j+"), graphs are:");
+                    System.out.println("FlatSubsumption(no OI) mismatch ("+i+"-"+j+"), expected "+expectedResults[i][j]+" obtained "+(!expectedResults[i][j])+", graphs are:");
+                    if (!expectedResults[i][j]) System.out.println("mapping: " + Arrays.toString(s.subsumes(g[i], g[j])));
                     System.out.println("graph 1:\n" + g[i]);
                     System.out.println("graph 2:\n" + g[j]);
                 }
                 if ((s_OI.subsumes(g[i], g[j])!=null) != expectedResultsOI[i][j]) {
                     errors++;
-                    System.out.println("FlatSubsumption(true) mismatch ("+i+"-"+j+"), graphs are:");
+                    System.out.println("FlatSubsumption(OI) mismatch ("+i+"-"+j+"), expected "+expectedResults[i][j]+" obtained "+(!expectedResults[i][j])+", graphs are:");
+                    if (!expectedResults[i][j]) System.out.println("mapping: " + Arrays.toString(s_OI.subsumes(g[i], g[j])));
                     System.out.println("graph 1:\n" + g[i]);
                     System.out.println("graph 2:\n" + g[j]);
                 }

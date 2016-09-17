@@ -166,13 +166,13 @@ public class FlatSubsumption extends Subsumption {
         // find a mapping:
         int []m = new int[g1.getNVertices()];
         for(int i = 0;i<g2.getNVertices();i++) used[i] = false;
+        for(int i = 0;i<g1.getNVertices();i++) m[i] = -1;
         for(int i = 0;i<g1.getNVertices();i++) {
             if (candidates[i].size()==1) {
                 m[i] = candidates[i].get(0);
                 if (objectIdentity && used[m[i]]) return null;
+                if (!checkEdgeConsistency(i, m, g1, g2)) return null;
                 used[m[i]] = true;
-            } else {
-                m[i] = -1;                
             }
         }
         
@@ -285,6 +285,10 @@ public class FlatSubsumption extends Subsumption {
                     m[vertex] = image;
                     used[image] = true;
                     trail.mappingTrail.add(vertex);
+                    if (!checkEdgeConsistency(vertex, m, g1, g2)) {
+                        if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + image + " edge consistency failed! backtrack!");
+                        backtrack = true;
+                    }
                 }
             }
             
