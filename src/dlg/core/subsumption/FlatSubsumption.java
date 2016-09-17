@@ -10,12 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 import dlg.util.Label;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 /**
  *
  * @author santi
  */
 public class FlatSubsumption extends Subsumption {
+    
+    public class Trail {
+        HashMap<Integer, List<Integer>> candidatesTrail = new HashMap<>();
+        List<Integer> mappingTrail = new ArrayList<>();
+    }
+    
     
     public static int DEBUG = 0;
         
@@ -151,65 +159,6 @@ public class FlatSubsumption extends Subsumption {
                 used[candidates[i1].get(0)] = true;
             }
         }
-                
-        // inference (propagate the constraints for those variables that only have one candidate):
-        List<Integer> open = new ArrayList<>();
-        for(int i = 0;i<g1.getNVertices();i++) {
-            if (candidates[i].size()==1) open.add(i);
-        }
-//        int totalBefore = 0;
-//        for(int i = 0;i<g1.getNVertices();i++) totalBefore+=candidates[i].size();
-//        System.out.println("open: " + open.size());        
-        while(!open.isEmpty()) {
-            int i1 = open.remove((int)0);
-            int i2 = candidates[i1].get(0);
-            
-            if (objectIdentity) {
-                // If i2 is the only option for i1, then i2 cannot be a candidate for any other vertex:
-                for(int i = 0;i<g1.getNVertices();i++) {
-                    if (i!=i1) {
-                        if (candidates[i].remove((Integer)i2)) {
-                            if (candidates[i].isEmpty()) return null;
-                            if (candidates[i].size()==1) open.add(i); 
-                        }
-                    }
-                }
-            }
-            
-            for(int j1:g1.getCondensedOutgoingEdges()[i1]) {
-                List<Integer> toDelete = new ArrayList<>();
-                for(int j2:candidates[j1]) {
-                    if (g2.getEdge(i2, j2) == null ||
-                        !g1.getEdge(i1, j1).equals(g2.getEdge(i2, j2))) toDelete.add(j2);
-                }
-                if (!toDelete.isEmpty()) {
-                    candidates[j1].removeAll(toDelete);
-                    if (candidates[j1].isEmpty()) {
-//                        System.out.println("null because of inference!");
-                        return null;
-                    }
-                    if (candidates[j1].size()==1) open.add(j1);
-                }                
-            }
-            for(int j1:g1.getCondensedIncomingEdges()[i1]) {
-                List<Integer> toDelete = new ArrayList<>();
-                for(int j2:candidates[j1]) {
-                    if (g2.getEdge(j2, i2) == null ||
-                        !g1.getEdge(j1, i1).equals(g2.getEdge(j2, i2))) toDelete.add(j2);
-                }
-                if (!toDelete.isEmpty()) {
-                    candidates[j1].removeAll(toDelete);
-                    if (candidates[j1].isEmpty()) {
-//                        System.out.println("null because of inference!");
-                        return null;
-                    }
-                    if (candidates[j1].size()==1) open.add(j1);
-                }                
-            }
-        }
-//        int totalAfter = 0;
-//        for(int i = 0;i<g1.getNVertices();i++) totalAfter+=candidates[i].size();
-//        if (totalBefore != totalAfter) System.out.println("Inference result: " + totalBefore + " -> " + totalAfter + " (" + (totalBefore - totalAfter) + ")");
         
         // sort the variables:
         sortVertices(vertexOrder, candidates);        
@@ -269,9 +218,14 @@ public class FlatSubsumption extends Subsumption {
             if (!used[mapping]) {
                 m[vertex] = mapping;
                 used[mapping] = true;
-                if (//checkSolvabilityOI(vertex_index+1, m, used, candidates, vertexOrder) &&
+
+                Trail trail = inference(vertex_index, m, used, candidates, g1, g2, vertexOrder);
+                
+                if (trail!=null &&
                     checkEdgeConsistency(vertex, m, g1, g2) &&
                     subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) return true;
+                if (trail!=null) restoreTrail(trail, candidates, m, used);
+                
                 used[mapping] = false;
                 m[vertex] = -1;
             }
@@ -279,23 +233,6 @@ public class FlatSubsumption extends Subsumption {
         
         return false;
     }    
-
-    /*
-    boolean checkSolvabilityOI(int vertex_index, int []m, boolean used[], List<Integer> candidates[], int []vertexOrder) {
-        for(int i = vertex_index; i<candidates.length; i++) {
-            boolean anyAvailable = false;
-            if (m[vertexOrder[i]]>=0) continue;
-            for(int mapping:candidates[vertexOrder[i]]) {
-                if (!used[mapping]) {
-                    anyAvailable = true;
-                    break;
-                }
-            }
-            if (!anyAvailable) return false;
-        }
-        return true;
-    }
-    */
     
     boolean checkEdgeConsistency(int i1, int []m, DLG g1, DLG g2) 
     {
@@ -319,6 +256,144 @@ public class FlatSubsumption extends Subsumption {
 
         return true;
     }    
+    
+    
+    public Trail inference(int vertex_index, int []m, boolean used[], List<Integer> candidates[], DLG g1, DLG g2, int []vertexOrder) {
+        Trail trail = new Trail();
+        List<Integer> open = new ArrayList<>();
+        boolean backtrack = false;
+        
+        open.add(vertexOrder[vertex_index]);
+        
+        if (DEBUG>=1) {
+            System.out.println("FlatSubsumption.inference(start): " + vertexOrder[vertex_index]);
+        }
+        
+        while(!open.isEmpty()) {
+            int vertex = open.remove(0);
+            int image = -1;
+                        
+            if (m[vertex]>=0) {
+                image = m[vertex];
+            } else {
+                assert candidates[vertex].size()==1;
+                image = candidates[vertex].get(0);
+                if (used[image]) {
+                    if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + image + " already used! backtrack!");
+                    backtrack = true;
+                } else {
+                    m[vertex] = image;
+                    used[image] = true;
+                    trail.mappingTrail.add(vertex);
+                }
+            }
+            
+            if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + vertex + " -> " + image);
+
+            if (!backtrack && objectIdentity) {
+                List<Integer> trail_v = null;
+                // If i2 is the only option for i1, then i2 cannot be a candidate for any other vertex:
+                for(int i = vertex_index+1;i<g1.getNVertices();i++) {
+                    if (m[vertexOrder[i]]==-1) {
+                        if (candidates[vertexOrder[i]].remove((Integer)image)) {
+                            if (trail_v==null) trail_v = new ArrayList<>();
+                            trail_v.add(vertexOrder[i]);
+                            if (candidates[vertexOrder[i]].isEmpty()) {
+                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidates for " + vertexOrder[i] + " empty! (OI elimination)");
+                                backtrack = true;
+                                break;
+                            }
+                            if (candidates[vertexOrder[i]].size()==1) open.add(vertexOrder[i]);
+                        }
+                    }
+                }
+                if (trail_v!=null) trail.candidatesTrail.put(image, trail_v);
+            }
+
+            if (!backtrack) {
+                for(int j1:g1.getCondensedOutgoingEdges()[vertex]) {
+                    if (m[j1]==-1) {
+                        List<Integer> toDelete = new ArrayList<>();
+                        for(int j2:candidates[j1]) {
+                            if (g2.getEdge(image, j2) == null ||
+                                !g1.getEdge(vertex, j1).equals(g2.getEdge(image, j2))) toDelete.add(j2);
+                        }
+                        if (!toDelete.isEmpty()) {
+                            for(int v:toDelete) {
+                                List<Integer> trail_v = trail.candidatesTrail.get(v);
+                                if (trail_v==null) {
+                                    trail_v = new ArrayList<>();
+                                    trail.candidatesTrail.put(v, trail_v);
+                                }
+                                trail_v.add(j1);
+                            }
+                            candidates[j1].removeAll(toDelete);
+                            if (candidates[j1].isEmpty()) {
+                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidats for " + j1 + " empty! (outgoing elimination)");
+                                backtrack = true;
+                                break;
+                            }
+                            if (candidates[j1].size()==1) open.add(j1);
+                        }                
+                    }
+                }
+            }
+            
+            if (!backtrack) {        
+                for(int j1:g1.getCondensedIncomingEdges()[vertex]) {
+                    if (m[j1]==-1) {
+                        List<Integer> toDelete = new ArrayList<>();
+                        for(int j2:candidates[j1]) {
+                            if (g2.getEdge(j2, image) == null ||
+                                !g1.getEdge(j1, vertex).equals(g2.getEdge(j2, image))) toDelete.add(j2);
+                        }
+                        if (!toDelete.isEmpty()) {
+                            for(int v:toDelete) {
+                                List<Integer> trail_v = trail.candidatesTrail.get(v);
+                                if (trail_v==null) {
+                                    trail_v = new ArrayList<>();
+                                    trail.candidatesTrail.put(v, trail_v);
+                                }
+                                trail_v.add(j1);
+                            }
+                            candidates[j1].removeAll(toDelete);
+                            if (candidates[j1].isEmpty()) {
+                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidats for " + j1 + " empty! (incoming elimination)");
+                                backtrack = true;
+                                break;
+                            }
+                            if (candidates[j1].size()==1) open.add(j1);
+                        }       
+                    }
+                }  
+            }
+            
+            if (backtrack) break;
+        }
+        
+        if (backtrack) {
+            if (DEBUG>=1) System.out.println("FlatSubsumption.inference: backtrack!");
+            restoreTrail(trail, candidates, m, used);
+            return null;
+        }        
+
+        if (DEBUG>=1) System.out.println("FlatSubsumption.inference: ok");
+        return trail;
+    }
+    
+    
+    public void restoreTrail(Trail trail, List<Integer> candidates[], int m[], boolean used[]) {
+        for(Entry<Integer, List<Integer>> entry:trail.candidatesTrail.entrySet()) {
+            for(int v:entry.getValue()) {
+                candidates[v].add(entry.getKey());
+            }
+        }
+        
+        for(int v:trail.mappingTrail) {
+            used[m[v]] = false;
+            m[v] = -1;
+        }
+    }
 }
 
 
