@@ -91,7 +91,7 @@ public class FlatSubsumption extends Subsumption {
                     // label of the vertex must match:
                     if (!g2.getVertex(i2).equals(l1)) continue;
 
-                    // under object identity, the more general must haveless or equal connections:
+                    // under object identity, the more general must have less or equal connections:
                     if (objectIdentity) {
                         if (g1.getCondensedIncomingEdges()[i1].length>g2.getCondensedIncomingEdges()[i2].length) continue;
                         if (g1.getCondensedOutgoingEdges()[i1].length>g2.getCondensedOutgoingEdges()[i2].length) continue;
@@ -220,7 +220,6 @@ public class FlatSubsumption extends Subsumption {
                 used[mapping] = true;
 
                 Trail trail = inference(vertex_index, m, used, candidates, g1, g2, vertexOrder);
-                
                 if (trail!=null &&
                     checkEdgeConsistency(vertex, m, g1, g2) &&
                     subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) return true;

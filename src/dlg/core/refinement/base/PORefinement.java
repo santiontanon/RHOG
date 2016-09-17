@@ -24,11 +24,20 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
 
     public static int DEBUG = 0;
     
+    // order in which the refinements occur (which might have a strong impact on performance):
     public final int DW_STAGE_EMPTY_GRAPH = 0;
     public final int DW_STAGE_ADD_VERTEX = 4;
     public final int DW_STAGE_ADD_EDGE = 3;
     public final int DW_STAGE_SPECIALIZE_VERTEX = 2;
     public final int DW_STAGE_SPECIALIZE_EDGE = 1;
+    
+    // order in which the refinements occur (which might have a strong impact on performance):
+    public final int UW_STAGE_REMOVE_NONBRIDGE_TOPEDGE = 1;
+    public final int UW_STAGE_REMOVE_TOPLEAF = 0;
+    public final int UW_STAGE_GENERALIZE_EDGE_TO_TOPLEAF = 2;
+    public final int UW_STAGE_GENERALIZE_LEAF = 3;
+    public final int UW_STAGE_GENERALIZE_EDGE_TO_NON_TOPLEAF = 4;
+    public final int UW_STAGE_GENERALIZE_NON_LEAF = 5;
     
     List<Label> vertexTopLabels = new ArrayList<>();
     List<Label> edgeTopLabels = new ArrayList<>();
@@ -337,7 +346,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
     public DLG getNextUpwardRefinement() throws Exception {
         int n = uw_currentDLG.getNVertices();
         switch(uw_incremental_stage) {
-            case 0: // remove a non-bridge top edge:
+            case UW_STAGE_REMOVE_NONBRIDGE_TOPEDGE: // remove a non-bridge top edge:
                 {
                     if (uw_stage_RNBE_next_vertex1 >= n) {
                         uw_incremental_stage++;
@@ -392,7 +401,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                     }
                     return g2;
                 }
-            case 1: // remove a top-leaf connected via a top-edge
+            case UW_STAGE_REMOVE_TOPLEAF: // remove a top-leaf connected via a top-edge
                 {
                     if (uw_stage_RTL_next_vertex >= n) {
                         uw_incremental_stage++;
@@ -435,7 +444,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                     return g2;                    
                 }
                 
-            case 2: // generalize edge to a top-leaf:
+            case UW_STAGE_GENERALIZE_EDGE_TO_TOPLEAF: // generalize edge to a top-leaf:
                 {          
                     if (uw_stage_GETL_next_vertex1>=n ||
                         edgeTopLabels.isEmpty()) {
@@ -506,7 +515,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                 }  
                 
                 
-           case 3: // generalize a leaf:
+           case UW_STAGE_GENERALIZE_LEAF: // generalize a leaf:
                 {          
                     if (uw_stage_GVL_next_vertex>=n ||
                         edgeTopLabels.isEmpty()) {
@@ -544,7 +553,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                     }
                 }
                 
-            case 4: // generalize edge to a vertex that is not a top-leaf:
+            case UW_STAGE_GENERALIZE_EDGE_TO_NON_TOPLEAF: // generalize edge to a vertex that is not a top-leaf:
                 {          
                     if (uw_stage_GENTL_next_vertex1>=n ||
                         edgeTopLabels.isEmpty()) {
@@ -610,7 +619,7 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                     }
                 }  
                 
-           case 5: // generalize a non leaf:
+           case UW_STAGE_GENERALIZE_NON_LEAF: // generalize a non leaf:
                 {          
                     if (uw_stage_GVNL_next_vertex>=n ||
                         edgeTopLabels.isEmpty()) {
