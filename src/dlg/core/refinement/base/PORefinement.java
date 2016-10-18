@@ -562,14 +562,18 @@ public class PORefinement extends RefinementOperator implements IncrementalRefin
                     }
 
                     Label el = uw_currentDLG.getEdge(uw_stage_GENTL_next_vertex1, uw_stage_GENTL_next_vertex2);
-                    if (el==null) {
+                    while(el==null) {
                         uw_stage_GENTL_next_label = 0;
                         uw_stage_GENTL_next_vertex2++;
                         if (uw_stage_GENTL_next_vertex2>=n) {
                             uw_stage_GENTL_next_vertex2 = 0;
                             uw_stage_GENTL_next_vertex1++;
+                            if (uw_stage_GENTL_next_vertex1>=n) {
+                                uw_incremental_stage++;
+                                return getNextUpwardRefinement();
+                            }
                         }
-                        return getNextUpwardRefinement();
+                        el = uw_currentDLG.getEdge(uw_stage_GENTL_next_vertex1, uw_stage_GENTL_next_vertex2);
                     }
                     Label candidates[] = partialOrder.getParents(el);
                     if (uw_stage_GENTL_next_label >= candidates.length) {
