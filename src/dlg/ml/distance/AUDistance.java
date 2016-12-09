@@ -64,6 +64,8 @@ public class AUDistance extends Distance {
                 if (!el.contains(l)) el.add(l);
             }
             ((RefinementOperatorUsingFlatLabels)m_rho).setEdgeLabels(el);
+            
+            //System.out.println(vl.size() + "-" + el.size() + " vs " + old_vl.size() + "-" + old_el.size());
         }
         
         Pair<DLG, Integer> tmp = AntiUnification.singleAntiunificationSteps(g1, g2, m_s, m_rho);

@@ -9,7 +9,6 @@ import dlg.core.DLG;
 import dlg.core.operations.Connectivity;
 import dlg.core.operations.GraphFilter;
 import dlg.core.refinement.IncrementalRefinementOperator;
-import dlg.core.refinement.RefinementOperator;
 import java.util.ArrayList;
 import java.util.List;
 import dlg.util.Label;
@@ -24,9 +23,9 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
     public static int DEBUG = 0;
     
     // order in which the refinements occur (which might have a strong impact on performance):
-    public final int DW_STAGE_EMPTY_GRAPH = 0;
-    public final int DW_STAGE_ADD_VERTEX = 2;
-    public final int DW_STAGE_ADD_EDGE = 1;
+    public final int DW_STAGE_EMPTY_GRAPH = 2;
+    public final int DW_STAGE_ADD_VERTEX = 1;
+    public final int DW_STAGE_ADD_EDGE = 0;
     
     // order in which the refinements occur (which might have a strong impact on performance):
     public final int UW_STAGE_REMOVE_NON_BRIDGE_EDGE = 1;
