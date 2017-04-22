@@ -300,7 +300,7 @@ public class PartialOrder {
         for(int i = 0;i<n;i++) {
             List<Integer> ascendants = new ArrayList<>();
             for(int j = 0;j<n;j++) {
-                if (m_subsumptionCache[j][i]) ascendants.add(j);
+                if (m_subsumptionCache[j][i] && i!=j) ascendants.add(j);
             }
             m_ancestorsCache[i] = new Label[ascendants.size()];
             for(int j = 0;j<ascendants.size();j++) {
