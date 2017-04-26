@@ -6,6 +6,7 @@
 package dlg.ml;
 
 import dlg.bridges.GMLBridge;
+import dlg.bridges.GXLBridge;
 import dlg.bridges.GraphMLBridge;
 import dlg.core.DLG;
 import dlg.core.PartialOrder;
@@ -15,6 +16,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
 
 /**
  *
@@ -24,6 +27,8 @@ import java.util.StringTokenizer;
  * 
  */
 public class MLDataSet {
+    public static int DEBUG = 0;
+    
     public static String MLDataSet_format_GML = "gml";
     public static String MLDataSet_format_GraphML = "graphml";
     
@@ -116,6 +121,54 @@ public class MLDataSet {
                
         return ds;
     }
+    
+    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[], int mode) throws Exception
+    {
+        return loadGXLDataSet(name, folder, cxlFiles, -1, mode);
+    }
+    
+    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[], int maxInstances, int mode) throws Exception
+    {
+        MLDataSet ds = new MLDataSet(name);
+        ds.m_instances = new ArrayList<>();
+        ds.m_labels = new List[1];
+        ds.m_labels[0] = new ArrayList<>();
+        GXLBridge b = new GXLBridge();
+        
+        for(String cxlFile:cxlFiles) {
+            BufferedReader br = new BufferedReader(new FileReader(folder + cxlFile));
+            Element root = new SAXBuilder().build(br).getRootElement();
+            Element dataset_e = (Element)root.getChildren().get(0);
+            List instances_l = dataset_e.getChildren("print");
+            for(Object o:instances_l) {
+                Element instance_e = (Element)o;
+                String gxl_file = instance_e.getAttributeValue("file");
+                String instance_label = instance_e.getAttributeValue("class");
+                DLG g = b.load(new BufferedReader(new FileReader(folder + gxl_file)), mode);
+                ds.m_instances.add(g);
+                ds.m_labels[0].add(new Label(instance_label));
+                if (maxInstances>0 && ds.m_instances.size()>=maxInstances) break;
+                if (DEBUG>=1) System.out.println("loaded instance " + ds.m_instances.size() + " -> " + instance_label + "(vertices: " + g.getNVertices() + ")");
+            }
+            if (maxInstances>0 && ds.m_instances.size()>=maxInstances) break;
+        }
+        
+        // extract all the labels from the instances:
+        {
+            ds.m_vertex_labels = new ArrayList<>();
+            for(DLG g:ds.m_instances) {
+                for(Label l:g.getAllVertexLabels()) 
+                    if (!ds.m_vertex_labels.contains(l)) ds.m_vertex_labels.add(l);
+            }
+            ds.m_edge_labels = new ArrayList<>();    
+            for(DLG g:ds.m_instances) {
+                for(Label l:g.getAllEdgeLabels()) 
+                    if (!ds.m_edge_labels.contains(l)) ds.m_edge_labels.add(l);
+            }
+        }        
+        
+        return ds;
+    }    
     
     
     public MLDataSet filterLabels(Label []labels, int labelIndex) {

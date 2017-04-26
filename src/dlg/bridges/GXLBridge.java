@@ -6,6 +6,7 @@
 package dlg.bridges;
 
 import dlg.core.DLG;
+import dlg.core.operations.VertexAddition;
 import dlg.util.Label;
 import java.io.BufferedReader;
 import java.io.Writer;
@@ -19,17 +20,18 @@ import org.jdom.input.SAXBuilder;
  * @author santi
  */
 public class GXLBridge implements DLGWriter {
-
+    public static final int FIRST_ATTRIBUTE_AS_LABEL_AND_IGNORE_THE_REST = 1;
+    public static final int FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES = 2;
     
-    public DLG load(BufferedReader br) throws Exception {
+    public DLG load(BufferedReader br, int mode) throws Exception {
         Element root = new SAXBuilder().build(br).getRootElement();
-        return load(root);
+        return load(root, mode);
     }
     
     
-    public DLG load(Element xml) throws Exception {
+    public DLG load(Element xml, int mode) throws Exception {
         DLG g = null;
-        List<Integer> vertexIDs = new ArrayList<Integer>();
+        List<String> vertexIDs = new ArrayList<>();
         boolean directed = true;
         
         Element graph_e = xml.getChild("graph");
@@ -42,8 +44,9 @@ public class GXLBridge implements DLGWriter {
         g = new DLG(n);
         for(int i = 0;i<n;i++) {
             Element node_e = (Element)nodes_e.get(i);
-            vertexIDs.add(Integer.parseInt(node_e.getAttributeValue("id")));
-            Element attr_e = node_e.getChild("attr");
+            vertexIDs.add(node_e.getAttributeValue("id"));
+            List attr_l = node_e.getChildren("attr");
+            Element attr_e = (Element)attr_l.get(0);
             if (attr_e!=null) {
                 Element value_e = null;
                 value_e = attr_e.getChild("string");
@@ -53,14 +56,27 @@ public class GXLBridge implements DLGWriter {
                     g.setVertex(i, new Label(label_text));
                 }
             }
+            if (mode == FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES) {
+                for(int j = 1;j<attr_l.size();j++) {
+                    Element attr2_e = (Element)attr_l.get(j);
+                    String attr2_name = attr2_e.getAttributeValue("name");
+                    Element value2_e = attr2_e.getChild("string");
+                    if (value2_e == null) value2_e = attr2_e.getChild("int");
+                    if (value2_e != null) {
+                        String label2_text = value2_e.getValue().trim();
+                        g = VertexAddition.addVertexFrom(g, new Label(label2_text), new Label(attr2_name), i);
+                    }                    
+                }
+            }
+            
         }
         
         // edges:
         List edges_e = graph_e.getChildren("edge");
         for(Object o:edges_e) {
             Element edge_e = (Element)o;
-            int from = Integer.parseInt(edge_e.getAttributeValue("from"));
-            int to = Integer.parseInt(edge_e.getAttributeValue("to"));
+            String from = edge_e.getAttributeValue("from");
+            String to = edge_e.getAttributeValue("to");
             int v1 = vertexIDs.indexOf(from);
             int v2 = vertexIDs.indexOf(to);
             Element attr_e = edge_e.getChild("attr");
