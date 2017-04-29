@@ -122,18 +122,18 @@ public class MLDataSet {
         return ds;
     }
     
-    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[], int mode) throws Exception
+    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[]) throws Exception
     {
-        return loadGXLDataSet(name, folder, cxlFiles, -1, mode);
+        return loadGXLDataSet(name, folder, cxlFiles, -1, GXLBridge.FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES, true, true);
     }
     
-    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[], int maxInstances, int mode) throws Exception
+    public static MLDataSet loadGXLDataSet(String name, String folder, String cxlFiles[], int maxInstances, int mode, boolean loadInteger, boolean loadFloat) throws Exception
     {
         MLDataSet ds = new MLDataSet(name);
         ds.m_instances = new ArrayList<>();
         ds.m_labels = new List[1];
         ds.m_labels[0] = new ArrayList<>();
-        GXLBridge b = new GXLBridge();
+        GXLBridge b = new GXLBridge(mode, loadInteger, loadFloat);
         
         for(String cxlFile:cxlFiles) {
             BufferedReader br = new BufferedReader(new FileReader(folder + cxlFile));
@@ -144,7 +144,7 @@ public class MLDataSet {
                 Element instance_e = (Element)o;
                 String gxl_file = instance_e.getAttributeValue("file");
                 String instance_label = instance_e.getAttributeValue("class");
-                DLG g = b.load(new BufferedReader(new FileReader(folder + gxl_file)), mode);
+                DLG g = b.load(new BufferedReader(new FileReader(folder + gxl_file)));
                 ds.m_instances.add(g);
                 ds.m_labels[0].add(new Label(instance_label));
                 if (maxInstances>0 && ds.m_instances.size()>=maxInstances) break;

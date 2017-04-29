@@ -23,13 +23,24 @@ public class GXLBridge implements DLGWriter {
     public static final int FIRST_ATTRIBUTE_AS_LABEL_AND_IGNORE_THE_REST = 1;
     public static final int FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES = 2;
     
-    public DLG load(BufferedReader br, int mode) throws Exception {
+    int m_attributeMode = FIRST_ATTRIBUTE_AS_LABEL_AND_IGNORE_THE_REST;
+    boolean m_loadInteger = false;
+    boolean m_loadFloat = false;
+    
+    public GXLBridge(int attributeMode, boolean loadInteger, boolean loadFloat)
+    {
+        m_attributeMode = attributeMode;
+        m_loadInteger = loadInteger;
+        m_loadFloat = loadFloat;
+    }
+    
+    public DLG load(BufferedReader br) throws Exception {
         Element root = new SAXBuilder().build(br).getRootElement();
-        return load(root, mode);
+        return load(root);
     }
     
     
-    public DLG load(Element xml, int mode) throws Exception {
+    public DLG load(Element xml) throws Exception {
         DLG g = null;
         List<String> vertexIDs = new ArrayList<>();
         boolean directed = true;
@@ -50,18 +61,20 @@ public class GXLBridge implements DLGWriter {
             if (attr_e!=null) {
                 Element value_e = null;
                 value_e = attr_e.getChild("string");
-                if (value_e == null) value_e = attr_e.getChild("int");
+                if (m_loadInteger && value_e == null) value_e = attr_e.getChild("int");
+                if (m_loadFloat && value_e == null) value_e = attr_e.getChild("float");
                 if (value_e != null) {
                     String label_text = value_e.getValue().trim();
                     g.setVertex(i, new Label(label_text));
                 }
             }
-            if (mode == FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES) {
+            if (m_attributeMode == FIRST_ATTRIBUTE_AS_LABEL_AND_REST_AS_EDGES) {
                 for(int j = 1;j<attr_l.size();j++) {
                     Element attr2_e = (Element)attr_l.get(j);
                     String attr2_name = attr2_e.getAttributeValue("name");
                     Element value2_e = attr2_e.getChild("string");
-                    if (value2_e == null) value2_e = attr2_e.getChild("int");
+                    if (m_loadInteger && value2_e == null) value2_e = attr2_e.getChild("int");
+                    if (m_loadFloat && value2_e == null) value2_e = attr2_e.getChild("float");
                     if (value2_e != null) {
                         String label2_text = value2_e.getValue().trim();
                         g = VertexAddition.addVertexFrom(g, new Label(label2_text), new Label(attr2_name), i);
