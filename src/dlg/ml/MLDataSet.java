@@ -167,6 +167,15 @@ public class MLDataSet {
             }
         }        
         
+        // construct the basic partial order:
+        ds.m_partialOrder = new PartialOrder();
+        for(Label l:ds.m_vertex_labels) {
+            ds.m_partialOrder.addLabel(l);
+        }
+        for(Label l:ds.m_edge_labels) {
+            ds.m_partialOrder.addLabel(l);
+        }
+        
         return ds;
     }    
     
