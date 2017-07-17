@@ -85,7 +85,7 @@ public class PartialOrder {
             tmp = new ArrayList<>();
             m_subsumptionConstraints.put(general, tmp);
         }
-        tmp.add(specific);
+        if (!tmp.contains(specific)) tmp.add(specific);
 
         clearCache();        
     }
@@ -161,6 +161,7 @@ public class PartialOrder {
         m_subsumptionCache = null;
         m_childrenCache = null;
         m_parentsCache = null;
+        m_ancestorsCache = null;
     }
     
     
