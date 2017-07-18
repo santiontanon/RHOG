@@ -149,16 +149,33 @@ public class FlatSubsumption extends Subsumption {
                 }
             } else {
                 // if an input mapping is provided, consider only those posibilities:
-                if (!g2.getVertex(mapping[i1]).equals(l1)) return null;
+                if (!g2.getVertex(mapping[i1]).equals(l1)) {
+//                    System.out.println("mapping does not respect labels for vertex " + i1);
+                    return null;
+                }
                 candidates[i1].add(mapping[i1]);
+                if (!candidateForAnyVertex[mapping[i1]]) ncandidatesForAnyVertex++;
+                candidateForAnyVertex[mapping[i1]] = true;
             }
-            if (candidates[i1].isEmpty()) return null;
-            if (objectIdentity && ncandidatesForAnyVertex<i1+1) return null;
+            if (candidates[i1].isEmpty()) {
+//                System.out.println("No candidates for " + i1);
+                return null;
+            }
+            if (objectIdentity && ncandidatesForAnyVertex<i1+1) {
+//                System.out.println("ncandidatesForAnyVertex < " + (i1+1));
+                return null;
+            }
             if (objectIdentity && candidates[i1].size()==1) {
                 if (used[candidates[i1].get(0)]) return null;
                 used[candidates[i1].get(0)] = true;
             }
         }
+        
+//        for(int i = 0;i<g1.getNVertices();i++) {
+//            System.out.println("v" + i + ": " + candidates[i]);
+//        }
+        
+//        System.out.println("no pre filter");
         
         // sort the variables:
         sortVertices(vertexOrder, candidates);        
@@ -175,6 +192,9 @@ public class FlatSubsumption extends Subsumption {
                 used[m[i]] = true;
             }
         }
+        
+//        System.out.println("still good");
+        
         
         if (objectIdentity) {
             if (subsumesInternalObjectIdentity(0, m, used, candidates, g1, g2, vertexOrder)) return m;
@@ -209,9 +229,13 @@ public class FlatSubsumption extends Subsumption {
     {
         if (vertex_index >= g1.getNVertices()) return true;
         int vertex = vertexOrder[vertex_index];
+//        System.out.println("considering " + vertex + " with " + Arrays.toString(m));
         if (m[vertex]>=0) {
+//            System.out.println("    m[" + vertex + "] = " + m[vertex] + " (preasigned)");
             used[m[vertex]] = true;
-            return subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder);
+            if (subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) return true;
+            used[m[vertex]] = false;
+            return false;
         }
         
         for(int mapping:candidates[vertex]) {
@@ -219,17 +243,29 @@ public class FlatSubsumption extends Subsumption {
                 m[vertex] = mapping;
                 used[mapping] = true;
 
+//                System.out.println("    testing m[" + vertex + "] = " + mapping);                
                 Trail trail = inference(vertex_index, m, used, candidates, g1, g2, vertexOrder);
-                if (trail!=null &&
-                    checkEdgeConsistency(vertex, m, g1, g2) &&
-                    subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) return true;
-                if (trail!=null) restoreTrail(trail, candidates, m, used);
+                if (trail!=null) {
+                    if (checkEdgeConsistency(vertex, m, g1, g2)) {
+                        if (subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) {
+                            return true;
+//                        } else {
+//                            System.out.println("    backtracking " + vertex + " because of search failure");                                                
+                        }
+//                    } else {
+//                        System.out.println("    backtracking " + vertex + " because of checkEdgeConsistency failure");                    
+                    }
+                    if (trail!=null) restoreTrail(trail, candidates, m, used);
+//                } else {
+//                    System.out.println("    backtracking " + vertex + " because of inference failure");
+                }
                 
                 used[mapping] = false;
                 m[vertex] = -1;
             }
         }
         
+//        System.out.println("Cannot find mapping for " + vertexOrder[vertex_index]);
         return false;
     }    
     
@@ -265,44 +301,45 @@ public class FlatSubsumption extends Subsumption {
         open.add(vertexOrder[vertex_index]);
         
         if (DEBUG>=1) {
-            System.out.println("FlatSubsumption.inference(start): " + vertexOrder[vertex_index]);
+            System.out.println("        FlatSubsumption.inference(start): " + vertexOrder[vertex_index] + " with " + Arrays.toString(m));
         }
         
         while(!open.isEmpty()) {
             int vertex = open.remove(0);
             int image = -1;
-                        
+                                    
             if (m[vertex]>=0) {
                 image = m[vertex];
             } else {
                 assert candidates[vertex].size()==1;
                 image = candidates[vertex].get(0);
                 if (used[image]) {
-                    if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + image + " already used! backtrack!");
+                    if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: " + image + " already used! backtrack!");
                     backtrack = true;
                 } else {
                     m[vertex] = image;
                     used[image] = true;
                     trail.mappingTrail.add(vertex);
                     if (!checkEdgeConsistency(vertex, m, g1, g2)) {
-                        if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + image + " edge consistency failed! backtrack!");
+                        if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: " + image + " edge consistency failed! backtrack!");
                         backtrack = true;
                     }
                 }
             }
-            
-            if (DEBUG>=1) System.out.println("FlatSubsumption.inference: " + vertex + " -> " + image);
+
+            if (DEBUG>=1 && !backtrack) System.out.println("        FlatSubsumption.inference: " + vertex + " -> " + image);
 
             if (!backtrack && objectIdentity) {
-                List<Integer> trail_v = null;
                 // If i2 is the only option for i1, then i2 cannot be a candidate for any other vertex:
                 for(int i = vertex_index+1;i<g1.getNVertices();i++) {
                     if (m[vertexOrder[i]]==-1) {
                         if (candidates[vertexOrder[i]].remove((Integer)image)) {
+                            List<Integer> trail_v = trail.candidatesTrail.get(image);
                             if (trail_v==null) trail_v = new ArrayList<>();
                             trail_v.add(vertexOrder[i]);
+                            trail.candidatesTrail.put(image, trail_v);
                             if (candidates[vertexOrder[i]].isEmpty()) {
-                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidates for " + vertexOrder[i] + " empty! (OI elimination)");
+                                if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: candidates for " + vertexOrder[i] + " empty! (OI elimination)");
                                 backtrack = true;
                                 break;
                             }
@@ -310,16 +347,19 @@ public class FlatSubsumption extends Subsumption {
                         }
                     }
                 }
-                if (trail_v!=null) trail.candidatesTrail.put(image, trail_v);
             }
 
             if (!backtrack) {
                 for(int j1:g1.getCondensedOutgoingEdges()[vertex]) {
                     if (m[j1]==-1) {
+                        if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: candidates for " + j1 + ": " + candidates[j1]);            
                         List<Integer> toDelete = new ArrayList<>();
                         for(int j2:candidates[j1]) {
                             if (g2.getEdge(image, j2) == null ||
-                                !g1.getEdge(vertex, j1).equals(g2.getEdge(image, j2))) toDelete.add(j2);
+                                !g1.getEdge(vertex, j1).equals(g2.getEdge(image, j2))) {
+                                toDelete.add(j2);
+//                                System.out.println("    Eliminating (out) candidate " + j2 + " for " + j1);
+                            }
                         }
                         if (!toDelete.isEmpty()) {
                             for(int v:toDelete) {
@@ -332,7 +372,7 @@ public class FlatSubsumption extends Subsumption {
                             }
                             candidates[j1].removeAll(toDelete);
                             if (candidates[j1].isEmpty()) {
-                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidats for " + j1 + " empty! (outgoing elimination)");
+                                if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: candidates for " + j1 + " empty! (outgoing elimination)");
                                 backtrack = true;
                                 break;
                             }
@@ -348,7 +388,10 @@ public class FlatSubsumption extends Subsumption {
                         List<Integer> toDelete = new ArrayList<>();
                         for(int j2:candidates[j1]) {
                             if (g2.getEdge(j2, image) == null ||
-                                !g1.getEdge(j1, vertex).equals(g2.getEdge(j2, image))) toDelete.add(j2);
+                                !g1.getEdge(j1, vertex).equals(g2.getEdge(j2, image))) {
+                                toDelete.add(j2);
+//                                System.out.println("    Eliminating (in) candidate " + j2 + " for " + j1);
+                            }
                         }
                         if (!toDelete.isEmpty()) {
                             for(int v:toDelete) {
@@ -361,7 +404,7 @@ public class FlatSubsumption extends Subsumption {
                             }
                             candidates[j1].removeAll(toDelete);
                             if (candidates[j1].isEmpty()) {
-                                if (DEBUG>=1) System.out.println("FlatSubsumption.inference: candidats for " + j1 + " empty! (incoming elimination)");
+                                if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: candidats for " + j1 + " empty! (incoming elimination)");
                                 backtrack = true;
                                 break;
                             }
@@ -375,12 +418,12 @@ public class FlatSubsumption extends Subsumption {
         }
         
         if (backtrack) {
-            if (DEBUG>=1) System.out.println("FlatSubsumption.inference: backtrack!");
+            if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: backtrack!");
             restoreTrail(trail, candidates, m, used);
             return null;
         }        
 
-        if (DEBUG>=1) System.out.println("FlatSubsumption.inference: ok");
+        if (DEBUG>=1) System.out.println("        FlatSubsumption.inference: ok");
         return trail;
     }
     
@@ -395,7 +438,7 @@ public class FlatSubsumption extends Subsumption {
         for(int v:trail.mappingTrail) {
             used[m[v]] = false;
             m[v] = -1;
-        }
+        }        
     }
 }
 

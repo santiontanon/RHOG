@@ -116,6 +116,7 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
                     dw_stage_EG_next_label++;
                     DLG g2 = new DLG(1);
                     g2.setVertex(0,l);
+                    if (DEBUG>=1) System.out.println("generated refinement by DW_STAGE_EMPTY_GRAPH");
                     return g2;
                 }
 
@@ -277,7 +278,7 @@ public class FlatRefinement extends RefinementOperatorUsingFlatLabels implements
                 
                     // remove leaf:
                     DLG g2 = GraphFilter.removeVertex(uw_currentDLG, uw_stage_1_next_vertex);
-                    if (DEBUG>=1) System.out.println("getNextUpwardRefinement: from stage 1");
+                    if (DEBUG>=1) System.out.println("getNextUpwardRefinement: from stage 1 (remove leaf " + uw_stage_1_next_vertex + ")");
 
                     uw_stage_1_next_vertex++;                
                     return g2;                    

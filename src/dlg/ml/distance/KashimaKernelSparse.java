@@ -2,25 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-/**
- * Copyright (c) 2013, Santiago Ontañón All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- * following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- * disclaimer. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
- * following disclaimer in the documentation and/or other materials provided with the distribution. Neither the name of
- * the IIIA-CSIC nor the names of its contributors may be used to endorse or promote products derived from this software
- * without specific prior written permission. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+
 package dlg.ml.distance;
 
 import java.util.List;
@@ -36,63 +18,30 @@ import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class KashimaKernel.
- *
- * @author santi
- */
 public class KashimaKernelSparse extends Distance {
 
-    /**
-     * The DEBUG.
-     */
     public static int DEBUG = 0;
 
-    /**
-     * The q.
-     */
     public double q = 0.1;
     public PartialOrder m_po = null;
     Algebra a = new Algebra();
 
-    /**
-     * Instantiates a new kashima kernel.
-     * @param a_q the q value
-     * @param a_po the partial order (could be null)
-     */
     public KashimaKernelSparse(double a_q, PartialOrder a_po) {
         q = a_q;
         m_po = a_po;
     }
 
 
-    /**
-     * Empty filler function (used for distance metrics that require a training
-     * process).
-     *
-     * @param instances the training instances
-     * @param labels the instance labels
-     */
     public void train(List<DLG> instances, List<Label> labels) throws Exception {
 
     }
+
 
     public double distance(DLG g1, DLG g2) throws Exception {
         return 1.0 - similarity(g1, g2);
     }
 
-    /**
-     * Similarity.
-     *
-     * @param g1 the g1
-     * @param g2 the g2
-     * @param pq the pq
-     * @param root the root
-     * @param dm the dm
-     * @return the double
-     * @throws FeatureTermException the feature term exception
-     */
+
     public double similarity(DLG g1, DLG g2) throws Exception {
         int n1 = g1.getNVertices(), n2 = g2.getNVertices();
         double[][] b = new double[1][n1 * n2];
@@ -196,16 +145,7 @@ public class KashimaKernelSparse extends Distance {
         return tmp.get(0, 0);
     }
     
-    
-    /**
-     * Multiply matrix.
-     * 
-     * @param A
-     *            the a
-     * @param B
-     *            the b
-     * @return the double matrix2 d
-     */
+
     static DoubleMatrix2D multiplyMatrix(DoubleMatrix2D A, DoubleMatrix2D B) {
             DoubleMatrix2D C = new SparseDoubleMatrix2D(A.rows(), B.columns());
             A.zMult(B, C);
@@ -213,14 +153,6 @@ public class KashimaKernelSparse extends Distance {
     }
 
 
-    /**
-     * Label similarity.
-     *
-     * @param l1 the l1
-     * @param l2 the l2
-     * @return the double
-     * @throws Exception
-     */
     public double labelSimilarity(Label l1, Label l2) throws Exception {
         if (m_po == null) {
             if (l1.equals(l2)) {

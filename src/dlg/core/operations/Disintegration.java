@@ -52,6 +52,15 @@ public class Disintegration {
             }
         }
         
+        if (DEBUG>=1) {
+            for(int i = 0;i<path.size()-1;i++) {
+                if (s.subsumes(path.get(i+1), path.get(i))==null) {
+                    System.out.println("A downward refinement is not subsumed by the original graph!!! " + i + " -> " + (i+1));
+                    System.exit(1);
+                }
+            }
+        }
+
         for(int i = 0;i<path.size()-1;i++) {
             if (DEBUG>=1) System.out.println("Disintegration.greedyDisintegration: current position in the path:\n" + path.get(i));
             DLG property = remainder(path.get(i), path.get(i+1), s, rho, true);
@@ -78,6 +87,7 @@ public class Disintegration {
             List<? extends DLG> refinements = rho.upwardRefinements(current);
             //System.out.println(current);
             if (DEBUG>=1) System.out.println("Disintegration.remainder: " + refinements.size() + " refinements");
+            
             for(DLG candidate:refinements) {
                 // if the "general" DLG is a direct refinement of "specific", then "general" will
                 // be included in generalizations_of_specific_subsumed_by_general, and thus, there is no need
