@@ -74,6 +74,12 @@ public class POTransSubsumption extends Subsumption {
                     // label of the vertex must subsume that of the candidate:
                     if (!partialOrder.subsumes(l1, g2.getVertex(i2))) continue;
 
+                    // under object identity, the more general must have less or equal connections:
+                    if (objectIdentity) {
+                        if (g1.getCondensedIncomingEdges()[i1].length>g2.getCondensedIncomingEdges()[i2].length) continue;
+                        if (g1.getCondensedOutgoingEdges()[i1].length>g2.getCondensedOutgoingEdges()[i2].length) continue;
+                    }
+                    
                     // g2 must have edges coming out with the same labels as the node in g1:
                     boolean allFound = true;
                     for(int j1:g1.getCondensedOutgoingEdges()[i1]) {
@@ -92,6 +98,22 @@ public class POTransSubsumption extends Subsumption {
                     }
                     if (!allFound) continue;
 
+                    for(int j1:g1.getCondensedIncomingEdges()[i1]) {
+                        Label l1j = g1.getEdge(j1, i1);
+                        boolean found = false;
+                        for(int j2:g2.getCondensedIncomingEdges()[i2]) {
+                            if (partialOrder.subsumes(l1j, g2.getEdge(j2, i2))) {
+                                found = true;
+                                break;
+                            }
+                        }             
+                        if (!found) {
+                            allFound = false;
+                            break;
+                        }
+                    }
+                    if (!allFound) continue;                    
+                    
                     candidates[i1].add(i2);
                 }
             } else {

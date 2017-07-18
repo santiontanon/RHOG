@@ -170,7 +170,7 @@ public class FlatSubsumption extends Subsumption {
                 used[candidates[i1].get(0)] = true;
             }
         }
-        
+       
 //        for(int i = 0;i<g1.getNVertices();i++) {
 //            System.out.println("v" + i + ": " + candidates[i]);
 //        }

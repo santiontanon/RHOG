@@ -60,6 +60,8 @@ public class FlatTransSubsumption extends Subsumption {
         List<Integer> candidates[] = new List[g1.getNVertices()];
         int vertexOrder[] = new int[g1.getNVertices()];
         
+        if (DEBUG>=1) System.out.println("FlatTransSubsumption.subsumes start");
+        
         // find candidates:
         for(int i1 = 0;i1<g1.getNVertices();i1++) {
             vertexOrder[i1] = i1;
@@ -70,6 +72,12 @@ public class FlatTransSubsumption extends Subsumption {
                     // label of the vertex must match:
                     if (!g2.getVertex(i2).equals(l1)) continue;
 
+                    // under object identity, the more general must have less or equal connections:
+                    if (objectIdentity) {
+                        if (g1.getCondensedIncomingEdges()[i1].length>g2.getCondensedIncomingEdges()[i2].length) continue;
+                        if (g1.getCondensedOutgoingEdges()[i1].length>g2.getCondensedOutgoingEdges()[i2].length) continue;
+                    }
+                    
                     // g2 must have edges coming out with the same labels as the node in g1:
                     boolean allFound = true;
                     for(int j1:g1.getCondensedOutgoingEdges()[i1]) {
@@ -88,6 +96,23 @@ public class FlatTransSubsumption extends Subsumption {
                     }
                     if (!allFound) continue;
 
+                    // g2 must have edges coming in with the same labels as the node in g1:
+                    for(int j1:g1.getCondensedIncomingEdges()[i1]) {
+                        Label l1j = g1.getEdge(j1, i1);
+                        boolean found = false;
+                        for(int j2:g2.getCondensedIncomingEdges()[i2]) {
+                            if (g2.getEdge(j2, i2).equals(l1j)) {
+                                found = true;
+                                break;
+                            }
+                        }             
+                        if (!found) {
+                            allFound = false;
+                            break;
+                        }
+                    }
+                    if (!allFound) continue;
+                    
                     candidates[i1].add(i2);
                 }
             } else {
@@ -97,6 +122,13 @@ public class FlatTransSubsumption extends Subsumption {
             }
             if (candidates[i1].isEmpty()) return null;
         }
+        
+//        int total = 0;
+//        for(int i = 0;i<g1.getNVertices();i++) {
+//            System.out.println("v" + i + ": " + candidates[i]);
+//            total+= candidates[i].size();
+//        }
+//        System.out.println("total: " + total);      
         
         // sort the variables:
         sortVertices(vertexOrder, candidates);

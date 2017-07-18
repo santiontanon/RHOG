@@ -214,7 +214,9 @@ public class POSubsumption extends Subsumption {
         int vertex = vertexOrder[vertex_index];
         if (m[vertex]>=0) {
             used[m[vertex]] = true;
-            return subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder);
+            if (subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder)) return true;
+            used[m[vertex]] = false;
+            return false;
         }
 
         if (DEBUG>=1) System.out.println("POSubsumption.subsumesInternalObjectIdentity: " + vertex + " in " + candidates[vertex]);
