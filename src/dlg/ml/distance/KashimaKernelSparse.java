@@ -54,6 +54,7 @@ public class KashimaKernelSparse extends Distance {
      */
     public double q = 0.1;
     public PartialOrder m_po = null;
+    Algebra a = new Algebra();
 
     /**
      * Instantiates a new kashima kernel.
@@ -184,7 +185,6 @@ public class KashimaKernelSparse extends Distance {
         // invert the "I - t" matrix:
         DoubleMatrix2D ImT_matrix = new SparseDoubleMatrix2D(ImT);
 //        System.out.println("inverting " + ImT_matrix.rows());
-        Algebra a = new Algebra();
         DoubleMatrix2D ImT_matrix_inverse = a.inverse(ImT_matrix);
 //        System.out.println("done!");
         DoubleMatrix2D r1_matrix = new SparseDoubleMatrix2D(r1);
