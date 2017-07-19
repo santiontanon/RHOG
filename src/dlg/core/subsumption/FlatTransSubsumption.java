@@ -172,12 +172,12 @@ public class FlatTransSubsumption extends Subsumption {
             }
         }
         
-        int total = 0;
-        for(int i = 0;i<g1.getNVertices();i++) {
-            System.out.println("v" + i + ": " + candidates[i]);
-            total+= candidates[i].size();
-        }
-        System.out.println("total: " + total);
+//        int total = 0;
+//        for(int i = 0;i<g1.getNVertices();i++) {
+//            System.out.println("v" + i + ": " + candidates[i]);
+//            total+= candidates[i].size();
+//        }
+//        System.out.println("total: " + total);
         
         
         // sort the variables:
