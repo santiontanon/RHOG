@@ -172,12 +172,12 @@ public class FlatTransSubsumption extends Subsumption {
             }
         }
         
-//        int total = 0;
-//        for(int i = 0;i<g1.getNVertices();i++) {
-//            System.out.println("v" + i + ": " + candidates[i]);
-//            total+= candidates[i].size();
-//        }
-//        System.out.println("total: " + total);
+        int total = 0;
+        for(int i = 0;i<g1.getNVertices();i++) {
+            System.out.println("v" + i + ": " + candidates[i]);
+            total+= candidates[i].size();
+        }
+        System.out.println("total: " + total);
         
         
         // sort the variables:
@@ -387,8 +387,16 @@ public class FlatTransSubsumption extends Subsumption {
             int v1 = edgesv1[nextEdge];
             int v2 = edgesv2[nextEdge];
             Label l = g1.getEdge(v1, v2);
-            List<List<Integer>> paths = allPathsThroughLabel(g2, m[v1], m[v2], l, used);
-            
+            List<List<Integer>> paths;
+            if (g2.getEdge(m[v1], m[v2])!=null && g2.getEdge(m[v1], m[v2]).equals(l)) {
+                // if we have a direct path, then we should not consider any other options, 
+                // there is no point (sinceonly the minimal paths make sense)!
+                paths = new ArrayList<>();
+                paths.add(new ArrayList<>());
+            } else {
+                 paths = allPathsThroughLabel(g2, m[v1], m[v2], l, used);            
+            }
+                        
             for(List<Integer> path:paths) {
                 for(int w:path) used[w] = true;
                 if (DEBUG>=1) System.out.println("    checking path: " + path);
@@ -406,7 +414,7 @@ public class FlatTransSubsumption extends Subsumption {
         int closed[] = new int[n];
         ArrayList<Integer> open = new ArrayList<>();
         ArrayList<List<Integer>> allPaths = new ArrayList<>();
-        
+                
         for(int i = 0;i<n;i++) closed[i] = -1;
         closed[v1] = v1;
         open.add(v1);
