@@ -387,22 +387,19 @@ public class FlatTransSubsumption extends Subsumption {
             int v1 = edgesv1[nextEdge];
             int v2 = edgesv2[nextEdge];
             Label l = g1.getEdge(v1, v2);
-            List<List<Integer>> paths;
             if (g2.getEdge(m[v1], m[v2])!=null && g2.getEdge(m[v1], m[v2]).equals(l)) {
                 // if we have a direct path, then we should not consider any other options, 
                 // there is no point (sinceonly the minimal paths make sense)!
-                paths = new ArrayList<>();
-                paths.add(new ArrayList<>());
+                return subsumesInternalObjectIdentityCheckPaths(nextEdge+1, edgesv1, edgesv2, vertex_index, m, used, candidates, g1, g2, vertexOrder);
             } else {
-                 paths = allPathsThroughLabel(g2, m[v1], m[v2], l, used);            
-            }
-                        
-            for(List<Integer> path:paths) {
-                for(int w:path) used[w] = true;
-                if (DEBUG>=1) System.out.println("    checking path: " + path);
-                if (subsumesInternalObjectIdentityCheckPaths(nextEdge+1, edgesv1, edgesv2, vertex_index, m, used, candidates, g1, g2, vertexOrder)) return true;
-                if (DEBUG>=1) System.out.println("    checking path failed");
-                for(int w:path) used[w] = false;
+                List<List<Integer>> paths = allPathsThroughLabel(g2, m[v1], m[v2], l, used);            
+                for(List<Integer> path:paths) {
+                    for(int w:path) used[w] = true;
+                    if (DEBUG>=1) System.out.println("    checking path: " + path);
+                    if (subsumesInternalObjectIdentityCheckPaths(nextEdge+1, edgesv1, edgesv2, vertex_index, m, used, candidates, g1, g2, vertexOrder)) return true;
+                    if (DEBUG>=1) System.out.println("    checking path failed");
+                    for(int w:path) used[w] = false;
+                }
             }
         }
         return false;
