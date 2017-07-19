@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import dlg.util.Label;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map.Entry;
 
 /**
@@ -18,13 +17,6 @@ import java.util.Map.Entry;
  * @author santi
  */
 public class FlatSubsumption extends Subsumption {
-    
-    public class Trail {
-        HashMap<Integer, List<Integer>> candidatesTrail = new HashMap<>();
-        List<Integer> mappingTrail = new ArrayList<>();
-    }
-    
-    
     public static int DEBUG = 0;
         
     boolean objectIdentity = false;
@@ -129,8 +121,8 @@ public class FlatSubsumption extends Subsumption {
                             if (g2.getEdge(j2, i2).equals(l1j) && 
                                 g2.getVertex(i2).equals(g1.getVertex(i1))) {
                                 if (objectIdentity) {
-                                    if (g1.getCondensedIncomingEdges()[i1].length>g2.getCondensedIncomingEdges()[i2].length) continue;
-                                    if (g1.getCondensedOutgoingEdges()[i1].length>g2.getCondensedOutgoingEdges()[i2].length) continue;
+                                    if (g1.getCondensedIncomingEdges()[j1].length>g2.getCondensedIncomingEdges()[j2].length) continue;
+                                    if (g1.getCondensedOutgoingEdges()[j1].length>g2.getCondensedOutgoingEdges()[j2].length) continue;
                                 }
                                 found = true;
                                 break;

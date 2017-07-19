@@ -79,15 +79,21 @@ public class FlatTransSubsumption extends Subsumption {
                     }
                     
                     // g2 must have edges coming out with the same labels as the node in g1:
-                    boolean allFound = true;
+                    boolean allFound = true;                    
                     for(int j1:g1.getCondensedOutgoingEdges()[i1]) {
                         Label l1j = g1.getEdge(i1, j1);
+                        List<Integer> reachableFromJ2ThroughL1J = verticesReachagleFromVertexThroughLabel(g2,i2,l1j);
                         boolean found = false;
-                        for(int j2:g2.getCondensedOutgoingEdges()[i2]) {
-                            if (g2.getEdge(i2, j2).equals(l1j)) {
-                                found = true;
-                                break;
+                        for(int j2:reachableFromJ2ThroughL1J) {
+//                        for(int j2:g2.getCondensedOutgoingEdges()[i2]) {
+//                            if (g2.getEdge(i2, j2).equals(l1j)) {
+                            if (objectIdentity) {
+                                if (g1.getCondensedIncomingEdges()[j1].length>g2.getCondensedIncomingEdges()[j2].length) continue;
+                                if (g1.getCondensedOutgoingEdges()[j1].length>g2.getCondensedOutgoingEdges()[j2].length) continue;
                             }
+                            found = true;
+                            break;
+//                            }
                         }             
                         if (!found) {
                             allFound = false;
@@ -99,12 +105,18 @@ public class FlatTransSubsumption extends Subsumption {
                     // g2 must have edges coming in with the same labels as the node in g1:
                     for(int j1:g1.getCondensedIncomingEdges()[i1]) {
                         Label l1j = g1.getEdge(j1, i1);
+                        List<Integer> I2CanBeReachedThroughL1J = verticesFromWhichVertexCanBeReachedThroughLabel(g2,i2,l1j);
                         boolean found = false;
-                        for(int j2:g2.getCondensedIncomingEdges()[i2]) {
-                            if (g2.getEdge(j2, i2).equals(l1j)) {
-                                found = true;
-                                break;
+                        for(int j2:I2CanBeReachedThroughL1J) {
+//                        for(int j2:g2.getCondensedIncomingEdges()[i2]) {
+//                            if (g2.getEdge(j2, i2).equals(l1j)) {
+                            if (objectIdentity) {
+                                if (g1.getCondensedIncomingEdges()[j1].length>g2.getCondensedIncomingEdges()[j2].length) continue;
+                                if (g1.getCondensedOutgoingEdges()[j1].length>g2.getCondensedOutgoingEdges()[j2].length) continue;
                             }
+                            found = true;
+                            break;
+//                            }
                         }             
                         if (!found) {
                             allFound = false;
@@ -128,7 +140,8 @@ public class FlatTransSubsumption extends Subsumption {
 //            System.out.println("v" + i + ": " + candidates[i]);
 //            total+= candidates[i].size();
 //        }
-//        System.out.println("total: " + total);      
+//        System.out.println("total: " + total);
+        
         
         // sort the variables:
         sortVertices(vertexOrder, candidates);
@@ -213,6 +226,48 @@ public class FlatTransSubsumption extends Subsumption {
         
         return false;
     }
+    
+    
+    public List<Integer> verticesReachagleFromVertexThroughLabel(DLG g, int v1, Label e_l)
+    {
+        List<Integer> reachable = new ArrayList<>();
+        List<Integer> open = new ArrayList<>();
+        open.add(v1);
+        while(!open.isEmpty()) {
+            int current = open.remove(0);
+            for(int v2:g.getCondensedOutgoingEdges()[current]) {
+                if (!reachable.contains(v2) && !open.contains(v2)) {
+                    if (g.getEdge(current, v2).equals(e_l)) {
+                        reachable.add(v2);
+                        open.add(v2);
+                    }
+                }
+            }
+        }
+        
+        return reachable;
+    }
+    
+    
+    public List<Integer> verticesFromWhichVertexCanBeReachedThroughLabel(DLG g, int v1, Label e_l)
+    {
+        List<Integer> reachable = new ArrayList<>();
+        List<Integer> open = new ArrayList<>();
+        open.add(v1);
+        while(!open.isEmpty()) {
+            int current = open.remove(0);
+            for(int v2:g.getCondensedIncomingEdges()[current]) {
+                if (!reachable.contains(v2) && !open.contains(v2)) {
+                    if (g.getEdge(v2, current).equals(e_l)) {
+                        reachable.add(v2);
+                        open.add(v2);
+                    }
+                }
+            }
+        }
+        
+        return reachable;
+    }    
     
     
     boolean subsumesInternalObjectIdentity(int vertex_index, int []m, boolean used[], List<Integer> candidates[], DLG g1, DLG g2, int []vertexOrder) 
