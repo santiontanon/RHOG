@@ -64,6 +64,8 @@ public class POTransSubsumption extends Subsumption {
         List<Integer> candidates[] = new List[g1.getNVertices()];
         int vertexOrder[] = new int[g1.getNVertices()];
         
+        if (objectIdentity && g2.getNVertices()<g1.getNVertices()) return null;
+        
         // find candidates:
         for(int i1 = 0;i1<g1.getNVertices();i1++) {
             vertexOrder[i1] = i1;

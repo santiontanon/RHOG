@@ -79,6 +79,8 @@ public class POSubsumption extends Subsumption {
             used[i2] = false;
         }
         
+        if (objectIdentity && g2.getNVertices()<g1.getNVertices()) return null;
+        
         // find candidates:
         for(int i1 = 0;i1<g1.getNVertices();i1++) {
             vertexOrder[i1] = i1;
