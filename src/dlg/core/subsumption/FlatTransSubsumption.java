@@ -59,7 +59,14 @@ public class FlatTransSubsumption extends Subsumption {
     public int[] subsumes(DLG g1, DLG g2, int []mapping) {
         List<Integer> candidates[] = new List[g1.getNVertices()];
         int vertexOrder[] = new int[g1.getNVertices()];
-        
+        boolean candidateForAnyVertex[] = new boolean[g2.getNVertices()];
+        int ncandidatesForAnyVertex = 0;
+        boolean []used = new boolean[g2.getNVertices()];
+        for(int i2 = 0;i2<g2.getNVertices();i2++) {
+            candidateForAnyVertex[i2] = false;
+            used[i2] = false;
+        }
+       
         if (DEBUG>=1) System.out.println("FlatTransSubsumption.subsumes start");
         
         // find candidates:
@@ -69,6 +76,8 @@ public class FlatTransSubsumption extends Subsumption {
             Label l1 = g1.getVertex(i1);
             if (mapping==null || mapping[i1]==-1) {
                 for(int i2 = 0;i2<g2.getNVertices();i2++) {
+                    if (used[i2]) continue;
+
                     // label of the vertex must match:
                     if (!g2.getVertex(i2).equals(l1)) continue;
 
@@ -126,13 +135,35 @@ public class FlatTransSubsumption extends Subsumption {
                     if (!allFound) continue;
                     
                     candidates[i1].add(i2);
+                    if (!candidateForAnyVertex[i2]) ncandidatesForAnyVertex++;
+                    candidateForAnyVertex[i2] = true;
                 }
             } else {
                 // if an input mapping is provided, consider only those posibilities:
-                if (!g2.getVertex(mapping[i1]).equals(l1)) return null;
+                if (!g2.getVertex(mapping[i1]).equals(l1)) {
+//                    System.out.println("provided mapping for " + i1 + " is inconsistent!");
+                    return null;
+                }
                 candidates[i1].add(mapping[i1]);
+                if (!candidateForAnyVertex[mapping[i1]]) ncandidatesForAnyVertex++;
+                candidateForAnyVertex[mapping[i1]] = true;
             }
-            if (candidates[i1].isEmpty()) return null;
+            
+            if (candidates[i1].isEmpty()) {
+//                System.out.println("no candidates for " + i1);
+                return null;
+            }
+            if (objectIdentity && ncandidatesForAnyVertex<i1+1) {
+//                System.out.println("ncandidatesForAnyVertex < " + (i1+1));
+                return null;
+            }
+            if (objectIdentity && candidates[i1].size()==1) {
+                if (used[candidates[i1].get(0)]) {
+//                    System.out.println("already used " + candidates[i1].get(0));
+                    return null;
+                }
+                used[candidates[i1].get(0)] = true;
+            }
         }
         
 //        int total = 0;
@@ -148,11 +179,22 @@ public class FlatTransSubsumption extends Subsumption {
 
         // find a mapping:
         int []m = new int[g1.getNVertices()];
+        for(int i = 0;i<g2.getNVertices();i++) used[i] = false;
         for(int i = 0;i<g1.getNVertices();i++) m[i] = -1;
-    
+/*
+        for(int i = 0;i<g1.getNVertices();i++) {
+            if (candidates[i].size()==1) {
+                m[i] = candidates[i].get(0);
+                if (objectIdentity && used[m[i]]) {
+                    System.out.println("already used " + m[i]);
+                    return null;
+                }
+                if (!checkEdgeConsistency(i, m, g1, g2)) return null;
+                used[m[i]] = true;
+            }
+        }
+*/
         if (objectIdentity) {
-            boolean []used = new boolean[g2.getNVertices()];
-            for(int i = 0;i<g2.getNVertices();i++) used[i] = false;
             if (subsumesInternalObjectIdentity(0, m, used, candidates, g1, g2, vertexOrder)) return m;
         } else {
             if (subsumesInternal(0, m, candidates, g1, g2, vertexOrder)) return m;
@@ -275,6 +317,7 @@ public class FlatTransSubsumption extends Subsumption {
         if (vertex_index >= g1.getNVertices()) return true;
         int vertex = vertexOrder[vertex_index];
         if (m[vertex]>=0) {
+            if (DEBUG>=1) System.out.println("Vertex " + vertex + " already had a mappign assigned: " + m[vertex]);
             return subsumesInternalObjectIdentity(vertex_index+1, m, used, candidates, g1, g2, vertexOrder);
         }
         
