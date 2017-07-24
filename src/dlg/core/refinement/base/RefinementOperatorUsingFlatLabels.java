@@ -20,8 +20,13 @@ public abstract class RefinementOperatorUsingFlatLabels extends RefinementOperat
  
     
     public RefinementOperatorUsingFlatLabels(List<Label> rl, List<Label> el) {
-        vertexLabels.addAll(rl);
-        edgeLabels.addAll(el);
+        for(Label l:rl) {
+            if (!vertexLabels.contains(l)) vertexLabels.add(l);
+        }
+        for(Label l:el) {
+            if (!edgeLabels.contains(l)) edgeLabels.add(l);
+        }
+//        System.out.println(vertexLabels.size() + " - " + edgeLabels.size());
     }
         
     public void setVertexLabels(List<Label> rl) {

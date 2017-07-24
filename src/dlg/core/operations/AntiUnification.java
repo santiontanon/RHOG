@@ -9,6 +9,7 @@ import dlg.core.DLG;
 import dlg.core.refinement.IncrementalRefinementOperator;
 import dlg.core.refinement.RefinementOperator;
 import dlg.core.subsumption.Subsumption;
+import dlg.core.subsumption.TreeFlatSubsumption;
 import java.util.ArrayList;
 import java.util.List;
 import dlg.util.Pair;
@@ -66,6 +67,8 @@ public class AntiUnification {
         int steps = 0;
         List<int []> mappings = null;
         
+//        Subsumption s2 = new TreeFlatSubsumption(true);
+        
         do {
             DLG next_au = null;
             List<int []> next_mappings = null;
@@ -82,6 +85,7 @@ public class AntiUnification {
                     for(DLG g:gs) {
                         int []m = s.subsumes(candidate_au, g);
                         if (m==null) {
+//                            if (s2.subsumes(candidate_au, g)!=null) System.out.println("WTF");
                             candidate_mappings = null;
                             break;
                         } else {
@@ -95,7 +99,7 @@ public class AntiUnification {
                         break;
                     }
                 } while(true);
-                if (DEBUG>=1) System.out.println("AntiUnification.singleAntiunification: incremental refinements " + nrefinements_generated);
+                if (DEBUG>=1) System.out.println("AntiUnification.singleAntiunification: incremental refinements " + nrefinements_generated + " (success: "+(next_au!=null)+")");
             } else {
                 List<? extends DLG> refinements = rho.downwardRefinements(au);
                 if (DEBUG>=1) System.out.println("AntiUnification.singleAntiunification: refinements " + refinements.size());

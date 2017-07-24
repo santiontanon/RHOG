@@ -87,6 +87,7 @@ public class TreeFlatRefinement extends RefinementOperatorUsingFlatLabels implem
                     TreeDLG g2 = new TreeDLG(1);
                     g2.setVertex(0,l);
                     g2.setRoot(0);
+//                    System.out.println("0");
                     return g2;
                 }
 
@@ -113,6 +114,8 @@ public class TreeFlatRefinement extends RefinementOperatorUsingFlatLabels implem
                     }
                     g2.setEdge(dw_stage_1_next_vertex, n, l2);
                     
+//                    System.out.println("1 - " + dw_stage_1_next_elabel + " - " + dw_stage_1_next_vlabel + " - " + dw_stage_1_next_vertex + " (el: " + edgeLabels.size() + ")");
+
                     dw_stage_1_next_elabel++;
                     if (dw_stage_1_next_elabel>=edgeLabels.size()) {
                         dw_stage_1_next_elabel = 0;

@@ -53,6 +53,18 @@ public class TreeFlatTransRefinement extends RefinementOperatorUsingFlatLabels i
     }
     
     
+    public void setVertexLabels(List<Label> rl) {
+        vertexLabels = rl;
+        m_flat_rho.setVertexLabels(rl);
+    }
+    
+
+    public void setEdgeLabels(List<Label> el) {
+        edgeLabels = el;
+        m_flat_rho.setEdgeLabels(el);
+    }    
+    
+    
     public List<TreeDLG> downwardRefinements(DLG g) {
         List<TreeDLG> refinements = new ArrayList<>();
 
@@ -74,7 +86,7 @@ public class TreeFlatTransRefinement extends RefinementOperatorUsingFlatLabels i
     }
 
     
-    public DLG getNextDownwardRefinement() {
+    public DLG getNextDownwardRefinement() {        
         int n = dw_currentDLG.getNVertices();
         switch(dw_incremental_stage) {
             case 0: // use flat refinement:
