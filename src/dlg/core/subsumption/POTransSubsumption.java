@@ -33,6 +33,11 @@ public class POTransSubsumption extends Subsumption {
     }
     
     
+    public PartialOrder getPartialOrder() {
+        return partialOrder;
+    }
+    
+    
     void sortVertices(int vertexOrder[], List<Integer> candidates[])
     {
         // bubble sort:

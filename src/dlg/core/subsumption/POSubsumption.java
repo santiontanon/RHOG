@@ -39,6 +39,11 @@ public class POSubsumption extends Subsumption {
     public boolean getObjectIdentity() {
         return objectIdentity;
     }
+    
+    public PartialOrder getPartialOrder()
+    {
+        return partialOrder;
+    }        
 
     void sortVertices(int vertexOrder[], List<Integer> candidates[])
     {
