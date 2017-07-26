@@ -49,7 +49,11 @@ public class WeightedPropertiesDistanceApproximateDisintegration extends Propert
         weights = null;
         for(DLG g:instances) {
             List<DLG> g_properties = null;
-            g_properties = SamplingDisintegration.samplingDisintegration(g, s, rho, propertiesPerTerm, terminationProbability);
+            if (USE_DISINTEGRATION_CACHE) {
+                g_properties = SamplingDisintegration.samplingDisintegrationWithCache(g, s, rho, propertiesPerTerm, terminationProbability);
+            } else {
+                g_properties = SamplingDisintegration.samplingDisintegration(g, s, rho, propertiesPerTerm, terminationProbability);
+            }
 
             for(DLG property:g_properties) {
                 boolean found = false;

@@ -18,6 +18,7 @@ import dlg.core.subsumption.Subsumption;
 import dlg.util.Label;
 import dlg.util.Pair;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -35,7 +36,29 @@ public class SamplingDisintegration {
     public static int DEBUG = 0;
     static Random r = new Random();
     
+    public static HashMap<DLG, List<DLG>> cache = new HashMap<>();
 
+    public static List<DLG> samplingDisintegrationWithCache(DLG g, Subsumption s, RefinementOperator rho, int num_properties, double p) throws Exception  {
+        List<DLG> properties = cache.get(g);
+        if (properties!=null) return properties;
+        properties = samplingDisintegration(g,s,rho,num_properties,p);
+        
+        List<DLG> properties_final = new ArrayList<>();
+        for(DLG property:properties) {
+            boolean found = false;
+            for(DLG p2:properties_final) {
+                if (s.subsumes(property, p2)!=null &&
+                    s.subsumes(p2, property)!=null) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) properties_final.add(property);
+        }
+        cache.put(g, properties_final);
+        return properties_final;
+    }
+        
     public static List<DLG> samplingDisintegration(DLG g, Subsumption s, RefinementOperator rho, int num_properties, double p) throws Exception  {
         if (rho instanceof FlatRefinement ||
             rho instanceof FlatTransRefinement) {
