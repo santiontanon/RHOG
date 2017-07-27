@@ -41,6 +41,15 @@ public class WeightedPropertiesDistanceApproximateDisintegration extends Propert
         properties.clear();
         addPropertiesByApproximateDisintegration(instances);
         computeWeightsViaInformationGain(instances, labels);
+
+        if (DEBUG>=1) {
+            System.out.println("train #properties: " + properties.size());
+            double size_accum = 0;
+            for(DLG p:properties) {
+                size_accum+=p.getNVertices();
+            }
+            System.out.println("train average property size: " + size_accum/properties.size());
+        }
     }
     
     
