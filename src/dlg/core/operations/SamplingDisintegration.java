@@ -12,9 +12,15 @@ import dlg.core.refinement.base.FlatRefinement;
 import dlg.core.refinement.base.FlatTransRefinement;
 import dlg.core.refinement.base.PORefinement;
 import dlg.core.refinement.base.POTransRefinement;
+import dlg.core.refinement.base.TreeFlatRefinement;
+import dlg.core.refinement.base.TreeFlatTransRefinement;
+import dlg.core.refinement.base.TreePORefinement;
+import dlg.core.refinement.base.TreePOTransRefinement;
 import dlg.core.subsumption.POSubsumption;
 import dlg.core.subsumption.POTransSubsumption;
 import dlg.core.subsumption.Subsumption;
+import dlg.core.subsumption.TreePOSubsumption;
+import dlg.core.subsumption.TreePOTransSubsumption;
 import dlg.util.Label;
 import dlg.util.Pair;
 import java.util.ArrayList;
@@ -61,12 +67,18 @@ public class SamplingDisintegration {
         
     public static List<DLG> samplingDisintegration(DLG g, Subsumption s, RefinementOperator rho, int num_properties, double p) throws Exception  {
         if (rho instanceof FlatRefinement ||
-            rho instanceof FlatTransRefinement) {
+            rho instanceof FlatTransRefinement ||
+            rho instanceof TreeFlatRefinement ||
+            rho instanceof TreeFlatTransRefinement) {
             return samplingDisintegration(g, num_properties, p);
         } else if (rho instanceof PORefinement) {
             return samplingDisintegrationPO(g, ((POSubsumption)s).getPartialOrder(), num_properties, p);
         } else if (rho instanceof POTransRefinement) {
             return samplingDisintegrationPO(g, ((POTransSubsumption)s).getPartialOrder(), num_properties, p);
+        } else if (rho instanceof TreePORefinement) {
+            return samplingDisintegrationPO(g, ((TreePOSubsumption)s).getPartialOrder(), num_properties, p);
+        } else if (rho instanceof TreePOTransRefinement) {
+            return samplingDisintegrationPO(g, ((TreePOTransSubsumption)s).getPartialOrder(), num_properties, p);
         } else {
             return null;
         }

@@ -32,6 +32,11 @@ public class TreePOTransSubsumption extends Subsumption {
         return objectIdentity;
     }
     
+    public PartialOrder getPartialOrder()
+    {
+        return partialOrder;
+    }            
+    
     public int[] subsumes(DLG g1, DLG g2, int input_mapping[]) {
         TreeDLG t1 = (TreeDLG)g1;
         TreeDLG t2 = (TreeDLG)g2;
